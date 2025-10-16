@@ -628,6 +628,7 @@
 <body>
     <div class="container">
         <div class="volleyball-emoji">🏐</div>
+        <h1>Pallavolo</h1>
 
         <div class="main-buttons-container">
             <button class="create-teams-btn" onclick="openTeamsModal()">
@@ -1217,7 +1218,7 @@
 
             const creatorInput = document.getElementById('creatorNameInput');
             const creatorName = creatorInput.value.trim();
-            const saveButton = document.querySelector('.save-teams-btn');
+            const saveButton = document.querySelector('#teamsResult .save-teams-btn');
 
             if (!creatorName) {
                 creatorInput.style.border = '2px solid #e74c3c';
