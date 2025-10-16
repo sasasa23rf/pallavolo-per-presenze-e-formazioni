@@ -786,15 +786,31 @@
                 <p id="admin-error" style="color: #ff6b6b; text-align: center; margin-top: 10px; display: none;">Password errata!</p>
             </div>
 
-            <!-- Vista Pannello Admin -->
-            <div id="admin-panel-view" style="display: none;">
+            <!-- Vista Menu Admin -->
+            <div id="admin-menu-view" style="display: none;">
+                <h2>Pannello Admin</h2>
+                <button class="save-teams-btn" style="margin-bottom: 10px;" onclick="showAdminPresences()">Gestisci Presenze</button>
+                <button class="save-teams-btn" style="background: #3498db;" onclick="showAdminAddPlayer()">Aggiungi Giocatore</button>
+            </div>
+
+            <!-- Vista Gestione Presenze -->
+            <div id="admin-presences-view" style="display: none;">
+                <button class="back-to-list-btn" onclick="showAdminMenu()">← Torna al menu</button>
                 <h2>Aggiungi Presenze</h2>
-                <p style="text-align:center; margin-bottom: 15px;">Seleziona i giocatori presenti:</p>
-                <div id="admin-players-list" class="db-players-grid" style="max-height: 300px;">
+                <p style="text-align:center; margin-bottom: 15px;">Seleziona i giocatori:</p>
+                <div id="admin-players-list" class="db-players-grid" style="max-height: 250px;">
                     <!-- Lista giocatori caricata da JS -->
                 </div>
-                <button class="save-teams-btn" id="add-presence-btn" onclick="addPresences()">Aggiungi 1 Presenza ai Selezionati</button>
-                <button class="save-teams-btn" id="subtract-presence-btn" style="background: #e74c3c; margin-top: 10px;" onclick="subtractPresences()">Sottrai 1 Presenza ai Selezionati</button>
+                <button class="save-teams-btn" id="add-presence-btn" onclick="addPresences()">Aggiungi 1 Presenza</button>
+                <button class="save-teams-btn" id="subtract-presence-btn" style="background: #e74c3c; margin-top: 10px;" onclick="subtractPresences()">Sottrai 1 Presenza</button>
+            </div>
+
+            <!-- Vista Aggiungi Giocatore -->
+            <div id="admin-add-player-view" style="display: none;">
+                <button class="back-to-list-btn" onclick="showAdminMenu()">← Torna al menu</button>
+                <h2>Aggiungi Nuovo Giocatore</h2>
+                <input type="text" id="newPlayerName" placeholder="Nome e Cognome del nuovo giocatore...">
+                <button class="save-teams-btn" id="add-new-player-btn" onclick="addNewPlayer()">Aggiungi Giocatore</button>
             </div>
         </div>
     </div>
@@ -1491,7 +1507,9 @@
             modal.style.display = 'flex';
             // Reset to login view every time
             document.getElementById('admin-login-view').style.display = 'block';
-            document.getElementById('admin-panel-view').style.display = 'none';
+            document.getElementById('admin-menu-view').style.display = 'none';
+            document.getElementById('admin-presences-view').style.display = 'none';
+            document.getElementById('admin-add-player-view').style.display = 'none';
             document.getElementById('adminPassword').value = '';
             document.getElementById('admin-error').style.display = 'none';
         }
@@ -1505,19 +1523,36 @@
             const errorMsg = document.getElementById('admin-error');
             if (passwordInput.value === 'pallavolo') {
                 document.getElementById('admin-login-view').style.display = 'none';
-                document.getElementById('admin-panel-view').style.display = 'block';
+                showAdminMenu();
                 errorMsg.style.display = 'none';
-                populateAdminPlayerList();
             } else {
                 errorMsg.style.display = 'block';
             }
+        }
+
+        function showAdminMenu() {
+            document.getElementById('admin-presences-view').style.display = 'none';
+            document.getElementById('admin-add-player-view').style.display = 'none';
+            document.getElementById('admin-menu-view').style.display = 'block';
+        }
+
+        function showAdminPresences() {
+            document.getElementById('admin-menu-view').style.display = 'none';
+            document.getElementById('admin-presences-view').style.display = 'block';
+            populateAdminPlayerList();
+        }
+
+        function showAdminAddPlayer() {
+            document.getElementById('admin-menu-view').style.display = 'none';
+            document.getElementById('admin-add-player-view').style.display = 'block';
+            document.getElementById('newPlayerName').value = '';
         }
 
         function populateAdminPlayerList() {
             const container = document.getElementById('admin-players-list');
             container.innerHTML = '';
             adminSelectedPlayers = []; // Reset selections
-            dbPlayers.forEach(player => {
+            dbPlayers.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(player => { // Ordina alfabeticamente
                 const playerEl = document.createElement('div');
                 playerEl.className = 'db-player-selectable';
                 playerEl.textContent = player.nome;
@@ -1539,78 +1574,42 @@
 
         async function addPresences() {
             const addButton = document.getElementById('add-presence-btn');
-            if (adminSelectedPlayers.length === 0) {
-                const originalText = addButton.textContent;
-                addButton.textContent = 'Seleziona un giocatore!';
-                setTimeout(() => { addButton.textContent = originalText; }, 2000);
-                return;
-            }
-
-            addButton.disabled = true;
-            addButton.textContent = 'Aggiornamento...';
-
-            const updatePromises = adminSelectedPlayers.map(playerName => {
-                const player = dbPlayers.find(p => p.nome === playerName);
-                if (!player) return Promise.resolve(); // Skip if player not found
-
-                const newPresenze = player.presenze + 1;
-
-                return fetch(`${supabaseUrl}/rest/v1/presenze?nome=eq.${encodeURIComponent(playerName)}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'apikey': supabaseKey,
-                        'Authorization': `Bearer ${supabaseKey}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
-                    },
-                    body: JSON.stringify({ presenze: newPresenze })
-                });
+            await updatePresences(addButton, 1, {
+                default: 'Aggiungi 1 Presenza',
+                processing: 'Aggiornamento...',
+                success: '✅ Presenze Aggiunte!',
+                error: '❌ Errore!',
+                empty: 'Seleziona un giocatore!'
             });
-
-            try {
-                const responses = await Promise.all(updatePromises);
-                // Check if any response was not ok
-                for (const res of responses) {
-                    if (res && !res.ok) {
-                        throw new Error('Uno o più aggiornamenti sono falliti.');
-                    }
-                }
-                
-                addButton.textContent = '✅ Presenze Aggiunte!';
-                setTimeout(() => {
-                    closeAdminModal();
-                    loadLeaderboard(); // Refresh leaderboard
-                    addButton.disabled = false;
-                    addButton.textContent = 'Aggiungi 1 Presenza ai Selezionati';
-                }, 1500);
-
-            } catch (error) {
-                console.error('Errore aggiornamento presenze:', error);
-                addButton.textContent = '❌ Errore!';
-                setTimeout(() => {
-                    addButton.disabled = false;
-                    addButton.textContent = 'Aggiungi 1 Presenza ai Selezionati';
-                }, 3000);
-            }
         }
 
         async function subtractPresences() {
             const subtractButton = document.getElementById('subtract-presence-btn');
+            await updatePresences(subtractButton, -1, {
+                default: 'Sottrai 1 Presenza',
+                processing: 'Aggiornamento...',
+                success: '✅ Presenze Sottratte!',
+                error: '❌ Errore!',
+                empty: 'Seleziona un giocatore!'
+            });
+        }
+        
+        async function updatePresences(button, amount, messages) {
             if (adminSelectedPlayers.length === 0) {
-                const originalText = subtractButton.textContent;
-                subtractButton.textContent = 'Seleziona un giocatore!';
-                setTimeout(() => { subtractButton.textContent = originalText; }, 2000);
+                const originalText = button.textContent;
+                button.textContent = messages.empty;
+                setTimeout(() => { button.textContent = originalText; }, 2000);
                 return;
             }
 
-            subtractButton.disabled = true;
-            subtractButton.textContent = 'Aggiornamento...';
+            button.disabled = true;
+            button.textContent = messages.processing;
 
             const updatePromises = adminSelectedPlayers.map(playerName => {
                 const player = dbPlayers.find(p => p.nome === playerName);
-                if (!player) return Promise.resolve(); // Skip if player not found
+                if (!player) return Promise.resolve();
 
-                const newPresenze = Math.max(0, player.presenze - 1); // Subtract 1, but not below 0
+                const newPresenze = Math.max(0, player.presenze + amount);
 
                 return fetch(`${supabaseUrl}/rest/v1/presenze?nome=eq.${encodeURIComponent(playerName)}`, {
                     method: 'PATCH',
@@ -1626,27 +1625,87 @@
 
             try {
                 const responses = await Promise.all(updatePromises);
-                // Check if any response was not ok
                 for (const res of responses) {
-                    if (res && !res.ok) {
-                        throw new Error('Uno o più aggiornamenti sono falliti.');
-                    }
+                    if (res && !res.ok) throw new Error('Uno o più aggiornamenti sono falliti.');
                 }
                 
-                subtractButton.textContent = '✅ Presenze Sottratte!';
+                button.textContent = messages.success;
                 setTimeout(() => {
                     closeAdminModal();
-                    loadLeaderboard(); // Refresh leaderboard
-                    subtractButton.disabled = false;
-                    subtractButton.textContent = 'Sottrai 1 Presenza ai Selezionati';
+                    loadLeaderboard();
                 }, 1500);
 
             } catch (error) {
-                console.error('Errore sottrazione presenze:', error);
-                subtractButton.textContent = '❌ Errore!';
+                console.error('Errore aggiornamento presenze:', error);
+                button.textContent = messages.error;
+            } finally {
+                 setTimeout(() => {
+                    button.disabled = false;
+                    button.textContent = messages.default;
+                }, 3000);
+            }
+        }
+
+        async function addNewPlayer() {
+            const newPlayerInput = document.getElementById('newPlayerName');
+            const newPlayerName = newPlayerInput.value.trim();
+            const addButton = document.getElementById('add-new-player-btn');
+
+            if (!newPlayerName) {
+                newPlayerInput.style.border = '2px solid #e74c3c';
+                newPlayerInput.placeholder = 'Il nome è obbligatorio!';
+                return;
+            }
+            if (dbPlayers.some(p => p.nome.toLowerCase() === newPlayerName.toLowerCase())) {
+                const originalText = addButton.textContent;
+                addButton.textContent = 'Giocatore già esistente!';
+                addButton.disabled = true;
                 setTimeout(() => {
-                    subtractButton.disabled = false;
-                    subtractButton.textContent = 'Sottrai 1 Presenza ai Selezionati';
+                    addButton.textContent = originalText;
+                    addButton.disabled = false;
+                }, 2000);
+                return;
+            }
+
+            newPlayerInput.style.border = 'none';
+            addButton.disabled = true;
+            addButton.textContent = 'Aggiungo...';
+
+            const payload = {
+                nome: newPlayerName,
+                presenze: 0
+            };
+
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/presenze`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Errore dal server');
+                }
+
+                addButton.textContent = '✅ Aggiunto!';
+                setTimeout(() => {
+                    closeAdminModal();
+                    loadLeaderboard(); 
+                }, 1500);
+
+            } catch (error) {
+                console.error("Errore aggiunta giocatore:", error);
+                addButton.textContent = '❌ Errore!';
+            } finally {
+                setTimeout(() => {
+                    addButton.disabled = false;
+                    addButton.textContent = 'Aggiungi Giocatore';
                 }, 3000);
             }
         }
