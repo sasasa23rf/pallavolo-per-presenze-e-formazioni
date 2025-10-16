@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pallavolo App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px; /* Ridotto per dare più spazio */
+            color: #fff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .volleyball-emoji {
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .main-buttons-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .main-buttons-container button {
+            flex: 1;
+            width: 100%;
+        }
+
+        .create-teams-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            text-align: center; /* Aggiunto per centrare */
+            line-height: 1.3; /* Aggiunto per migliorare la spaziatura verticale */
+        }
+
+        .create-teams-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+
+        .view-teams-btn {
+            background: linear-gradient(135deg, #5ee7df 0%, #b490ca 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            text-align: center; /* Aggiunto per centrare */
+            line-height: 1.3; /* Aggiunto per migliorare la spaziatura verticale */
+        }
+
+        .view-teams-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+
+        .leaderboard {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1px; /* Ridotto per allargare l'area interna */
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .leaderboard-title {
+            text-align: center;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .player-card {
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 12px; /* Leggermente ridotto */
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .player-card:hover {
+            transform: translateX(5px);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .player-card.top-3 {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            color: #333; /* Improved text color for top players */
+            border: 2px solid #f39c12;
+        }
+        
+        .player-card.top-3 .player-presences-badge {
+            background: #e67e22;
+            color: white;
+        }
+
+        .player-rank-container {
+            display: flex;
+            align-items: center;
+            margin-right: 10px; /* Ridotto per guadagnare spazio */
+        }
+
+        .player-rank {
+            font-size: 1.8em; /* Leggermente ridotto */
+            font-weight: bold;
+            min-width: 40px; /* Ridotto */
+            text-align: center;
+        }
+
+        .player-presences-badge {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1em;
+            margin-left: 10px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .player-info {
+            flex: 1;
+            min-width: 0; /* Helps flexbox shrink the item if content is too wide */
+        }
+
+        .player-name {
+            font-size: 1em; /* Ridotto per nomi lunghi */
+            font-weight: bold;
+            margin-bottom: 3px;
+            word-break: break-word; /* Prevents overflow by breaking long words */
+            line-height: 1.2; /* Aggiunto per migliorare la spaziatura */
+        }
+        
+        .player-stats {
+            text-align: right;
+        }
+
+        .medal {
+            font-size: 2em;
+            line-height: 1;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            overflow-y: auto; /* Allows the container to scroll if content overflows */
+            display: flex;
+            align-items: flex-start; /* Aligns content to the top, preventing it from being pushed off-screen */
+            justify-content: center;
+            padding: 5vh 0; /* Adds vertical padding to keep content from touching edges */
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            position: relative;
+            animation: slideInModal 0.4s ease-out;
+            margin-bottom: auto; /* Ensures it doesn't stick to the bottom if padding is large */
+        }
+
+        @keyframes slideInModal {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2em;
+            color: white;
+            cursor: pointer;
+            border: none;
+            background: none;
+            transition: transform 0.2s;
+        }
+        
+        .close-modal:hover {
+            transform: scale(1.2);
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+        
+        .db-players-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .db-player-selectable {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.4);
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+        }
+
+        .db-player-selectable:hover {
+            background: rgba(255,255,255,0.25);
+            border-color: white;
+        }
+
+        .db-player-selectable.assigned, .db-player-selectable.selected {
+            background: #27ae60;
+            border-color: #2ecc71;
+            color: white;
+            cursor: pointer;
+        }
+
+        .db-player-selectable.assigned:hover, .db-player-selectable.selected:hover {
+             background: #e74c3c;
+             border-color: #c0392b;
+        }
+
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #333;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .teams-result {
+            margin-top: 20px;
+        }
+
+        .team {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .team h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .team-a {
+            border: 3px solid #ff6b6b;
+        }
+
+        .team-b {
+            border: 3px solid #4ecdc4;
+        }
+
+        .team ul {
+            list-style: none;
+        }
+
+        .team li {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+        }
+
+        .players-list {
+            margin-bottom: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .team-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .team-select-btn {
+            flex: 1;
+            padding: 15px;
+            border: 3px solid transparent;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .team-a-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        }
+
+        .team-b-btn {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+
+        .team-select-btn.active {
+            border-color: white;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #333;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .teams-preview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .team-preview {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 15px;
+            min-height: 150px;
+        }
+
+        .team-a-preview {
+            border: 2px solid #ff6b6b;
+        }
+
+        .team-b-preview {
+            border: 2px solid #4ecdc4;
+        }
+
+        .team-preview h4 {
+            text-align: center;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .team-preview-player {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease;
+            font-size: 0.9em; /* Aggiunto per ridurre il font */
+        }
+
+        .player-tag {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 12px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 1em;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .remove-btn:hover {
+            background: #c0392b;
+            transform: scale(1.1);
+        }
+
+        .save-section {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+        }
+
+        .save-section input {
+            margin-bottom: 10px;
+        }
+
+        .save-teams-btn {
+            width: 100%;
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .save-teams-btn:hover {
+            background: #2ecc71;
+        }
+        
+        .save-teams-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .saved-game-entry {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .saved-game-entry:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        
+        .saved-game-info {
+             flex-grow: 1;
+             cursor: pointer;
+        }
+
+        .creator-name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .game-date {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .delete-squadra-btn {
+            background: #c0392b;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-left: 15px;
+        }
+        .delete-squadra-btn:hover {
+            background: #e74c3c;
+            transform: scale(1.1);
+        }
+
+        .back-to-list-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="volleyball-emoji">🏐</div>
+
+        <div class="main-buttons-container">
+            <button class="create-teams-btn" onclick="openTeamsModal()">
+                Crea<br>Squadre
+            </button>
+            <button class="view-teams-btn" onclick="openViewTeamsModal()">
+                Visualizza<br>Squadre
+            </button>
+        </div>
+
+        <div class="leaderboard">
+            <div class="leaderboard-title">🏆 Classifica Presenze 🏆</div>
+            <div id="leaderboard-content" class="loading">Caricamento...</div>
+        </div>
+    </div>
+
+    <!-- Modal Teams -->
+    <div id="teamsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeTeamsModal()">×</button>
+            <h2>⚡ Crea Squadre</h2>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('random')">🎲 Random</button>
+                <button class="tab-btn" onclick="switchTab('manual')">✋ Manuale</button>
+            </div>
+
+            <!-- Tab Random -->
+            <div id="randomTab" class="tab-content active">
+                <label style="font-weight: bold; margin-bottom: 10px; display: block;">Seleziona giocatori dal database:</label>
+                <div id="dbPlayersRandomContainer" class="db-players-grid"></div>
+
+                <label style="font-weight: bold; margin-bottom: 10px; display: block;">Aggiungi giocatori manuali:</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <input type="text" id="randomPlayerInput" placeholder="Scrivi un nome e premi Invio" style="flex: 1; margin: 0;">
+                </div>
+                <div id="randomPlayersList" class="players-list"></div>
+
+                <button class="generate-btn" onclick="generateRandomTeams()">🎲 Genera Squadre Random</button>
+            </div>
+
+            <!-- Tab Manual -->
+            <div id="manualTab" class="tab-content">
+                <label style="font-weight: bold; margin-bottom: 10px; display: block;">Seleziona giocatori dal database:</label>
+                <div id="dbPlayersManualContainer" class="db-players-grid"></div>
+
+                <label style="font-weight: bold; margin-bottom: 10px; display: block;">Seleziona squadra per assegnarli:</label>
+                <div class="team-selector">
+                    <button class="team-select-btn team-a-btn active" onclick="selectTeam('A')">
+                        🔴 Squadra A
+                    </button>
+                    <button class="team-select-btn team-b-btn" onclick="selectTeam('B')">
+                        🔵 Squadra B
+                    </button>
+                </div>
+
+                <label style="font-weight: bold; margin-bottom: 10px; display: block; margin-top: 15px;">Aggiungi giocatori manuali:</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <input type="text" id="manualPlayerInput" placeholder="Scrivi un nome" style="flex: 1; margin: 0;">
+                    <button class="send-btn" onclick="addManualPlayer()">Invia</button>
+                </div>
+                
+                <div class="teams-preview">
+                    <div class="team-preview team-a-preview">
+                        <h4>🔴 Squadra A</h4>
+                        <div id="teamAList"></div>
+                    </div>
+                    <div class="team-preview team-b-preview">
+                        <h4>🔵 Squadra B</h4>
+                        <div id="teamBList"></div>
+                    </div>
+                </div>
+
+                <div class="save-section" style="margin-top: 20px;">
+                    <input type="text" id="manualCreatorNameInput" placeholder="Il tuo nome (creatore)...">
+                    <button class="save-teams-btn" onclick="handleManualSave()">
+                        💾 Salva Squadre
+                    </button>
+                </div>
+            </div>
+
+            <div id="teamsResult" class="teams-result"></div>
+        </div>
+    </div>
+    
+    <!-- Modal Visualizza Squadre -->
+    <div id="viewTeamsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeViewTeamsModal()">×</button>
+            <h2>📂 Squadre Salvate</h2>
+            <div id="squadre-list-container">
+                <!-- List will be populated by JS -->
+            </div>
+            <div id="squadre-display-container" style="display: none;">
+                <!-- Selected team will be shown here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Conferma Cancellazione -->
+    <div id="confirmDeleteModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2>Conferma Cancellazione</h2>
+            <p id="confirmDeleteText" style="text-align: center; margin-bottom: 25px; font-size: 1.1em;"></p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button id="confirmDeleteBtn" class="save-teams-btn" style="background: #e74c3c;">Sì, elimina</button>
+                <button onclick="closeConfirmDeleteModal()" class="back-to-list-btn">Annulla</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- CONFIGURAZIONE SUPABASE ---
+        // Se l'app mostra un errore 401, la tua chiave API qui sotto potrebbe non essere più valida.
+        // Vai sul tuo progetto Supabase > Project Settings > API e copia la chiave 'anon' (public).
+        const supabaseUrl = 'https://xoqvgrcvvhseufgszhhe.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcXZncmN2dmhzZXVmZ3N6aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1NTcwNjMsImV4cCI6MjA3NjEzMzA2M30.WYcW3WGqd8tO0wuhGEZof4ohEOvvXEe-jNb2VUMtY2E';
+        // -----------------------------
+
+        let dbPlayers = [];
+        let randomManualPlayers = [];
+        let randomSelectedDbPlayers = [];
+        let manualAssignedPlayers = { A: [], B: [] };
+        let selectedTeam = 'A';
+        let savedSquadre = [];
+        let squadraToDeleteId = null;
+        
+        // Variabili globali per memorizzare le ultime squadre generate
+        let lastGeneratedTeamA = [];
+        let lastGeneratedTeamB = [];
+
+        async function loadLeaderboard() {
+            const content = document.getElementById('leaderboard-content');
+            
+            if (!supabaseUrl || !supabaseKey) {
+                content.innerHTML = '<p style="text-align: center;">⚠️ Credenziali Supabase non impostate nel codice!</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/presenze?select=*`, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    throw new Error('401');
+                }
+                if (!response.ok) {
+                    throw new Error(`Errore HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                dbPlayers = data;
+
+                // Ordina per presenze
+                data.sort((a, b) => b.presenze - a.presenze);
+
+                let html = '';
+                data.forEach((player, index) => {
+                    const rank = index + 1;
+                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+                    const topClass = rank <= 3 ? 'top-3' : '';
+
+                    // Modifica per mandare a capo il nome
+                    const nameParts = player.nome.split(' ');
+                    const firstName = nameParts.shift(); // Prende la prima parola (nome)
+                    const lastName = nameParts.join(' '); // Unisce il resto (cognome)
+                    const formattedName = lastName ? `${firstName}<br>${lastName}` : firstName;
+
+                    html += `
+                        <div class="player-card ${topClass}">
+                            <div class="player-rank-container">
+                                <div class="player-rank">${rank}°</div>
+                                <div class="player-presences-badge">${player.presenze}</div>
+                            </div>
+                            <div class="player-info">
+                                <div class="player-name">${formattedName}</div>
+                            </div>
+                            <div class="player-stats">
+                                ${medal ? `<div class="medal">${medal}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                content.innerHTML = html || '<p style="text-align: center;">Nessun giocatore trovato</p>';
+                
+                renderPlayerListsInModal();
+
+            } catch (error) {
+                let errorMessage = '❌ Errore nel caricamento dati. Controlla la connessione.';
+                if (error.message.includes('401')) {
+                    errorMessage = '❌ Errore di Autenticazione (401). La API Key di Supabase sembra non essere valida. Per favore, aggiornala nel codice sorgente.';
+                }
+                content.innerHTML = `<p style="text-align: center; padding: 10px;">${errorMessage}</p>`;
+                console.error(error);
+            }
+        }
+
+        function renderPlayerListsInModal() {
+            // --- Tab Random ---
+            const randomContainer = document.getElementById('dbPlayersRandomContainer');
+            let randomHtml = '';
+            dbPlayers.forEach(player => {
+                const isSelected = randomSelectedDbPlayers.includes(player.nome);
+                const playerClass = `db-player-selectable ${isSelected ? 'selected' : ''}`;
+                const escapedPlayerName = player.nome.replace(/'/g, "\\'");
+                const clickHandler = `onclick="toggleRandomPlayerSelection('${escapedPlayerName}')"`;
+                
+                randomHtml += `<div class="${playerClass}" ${clickHandler}>${player.nome}</div>`;
+            });
+            randomContainer.innerHTML = randomHtml || '<p>Nessun giocatore disponibile</p>';
+            
+            // --- Tab Manuale ---
+            const manualContainer = document.getElementById('dbPlayersManualContainer');
+            let manualHtml = '';
+            const assignedPlayers = [...manualAssignedPlayers.A, ...manualAssignedPlayers.B];
+
+            dbPlayers.forEach(player => {
+                const isAssigned = assignedPlayers.includes(player.nome);
+                const playerClass = `db-player-selectable ${isAssigned ? 'assigned' : ''}`;
+                const escapedPlayerName = player.nome.replace(/'/g, "\\'");
+                const clickHandler = isAssigned 
+                    ? `onclick="unassignDbPlayer('${escapedPlayerName}')"` 
+                    : `onclick="assignDbPlayer('${escapedPlayerName}')"`;
+                
+                manualHtml += `<div class="${playerClass}" ${clickHandler}>${player.nome}</div>`;
+            });
+            manualContainer.innerHTML = manualHtml || '<p>Nessun giocatore disponibile</p>';
+        }
+
+        function toggleRandomPlayerSelection(playerName) {
+            const index = randomSelectedDbPlayers.indexOf(playerName);
+            if (index > -1) {
+                randomSelectedDbPlayers.splice(index, 1); // Deseleziona
+            } else {
+                randomSelectedDbPlayers.push(playerName); // Seleziona
+            }
+            renderPlayerListsInModal();
+        }
+
+        function assignDbPlayer(playerName) {
+            manualAssignedPlayers[selectedTeam].push(playerName);
+            updateManualTeamsPreview();
+            renderPlayerListsInModal();
+        }
+
+        function unassignDbPlayer(playerName) {
+            let indexA = manualAssignedPlayers.A.indexOf(playerName);
+            if (indexA > -1) manualAssignedPlayers.A.splice(indexA, 1);
+
+            let indexB = manualAssignedPlayers.B.indexOf(playerName);
+            if (indexB > -1) manualAssignedPlayers.B.splice(indexB, 1);
+
+            updateManualTeamsPreview();
+            renderPlayerListsInModal();
+        }
+
+        function openTeamsModal() {
+            document.getElementById('teamsModal').style.display = 'flex';
+            document.getElementById('teamsResult').innerHTML = '';
+            
+            // Reset state on open
+            randomManualPlayers = [];
+            manualAssignedPlayers = { A: [], B: [] };
+            randomSelectedDbPlayers = []; // Inizializza come array vuoto per far partire i giocatori come deselezionati
+            lastGeneratedTeamA = [];
+            lastGeneratedTeamB = [];
+            
+            renderPlayerListsInModal();
+            updateManualTeamsPreview();
+            
+            setupInputListeners();
+        }
+
+        function closeTeamsModal() {
+            document.getElementById('teamsModal').style.display = 'none';
+        }
+
+        async function openViewTeamsModal() {
+            document.getElementById('viewTeamsModal').style.display = 'flex';
+            const listContainer = document.getElementById('squadre-list-container');
+            const displayContainer = document.getElementById('squadre-display-container');
+
+            // Reset view
+            listContainer.style.display = 'block';
+            displayContainer.style.display = 'none';
+            listContainer.innerHTML = '<div class="loading">Caricamento squadre...</div>';
+
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/squadre?select=*&order=created_at.desc`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                if (!response.ok) throw new Error('Errore nel caricamento delle squadre salvate.');
+
+                savedSquadre = await response.json();
+
+                if (savedSquadre.length === 0) {
+                    listContainer.innerHTML = '<p style="text-align: center;">Nessuna squadra salvata trovata.</p>';
+                    return;
+                }
+
+                let html = '<h3 style="text-align: center; margin-bottom: 15px;">Seleziona una partita:</h3>';
+                savedSquadre.forEach(squadra => {
+                    const date = new Date(squadra.created_at).toLocaleString('it-IT', {
+                        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    const escapedCreatorName = squadra.nome_creatore_squadre.replace(/'/g, "\\'");
+                    html += `
+                        <div class="saved-game-entry">
+                            <div class="saved-game-info" onclick="displaySavedSquadra(${squadra.id})">
+                                <div class="creator-name">${squadra.nome_creatore_squadre}</div>
+                                <div class="game-date">${date}</div>
+                            </div>
+                            <button class="delete-squadra-btn" onclick="confirmDeleteSquadra(${squadra.id}, '${escapedCreatorName}')">×</button>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+
+            } catch (error) {
+                listContainer.innerHTML = `<p style="text-align: center;">❌ ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+
+        function closeViewTeamsModal() {
+            document.getElementById('viewTeamsModal').style.display = 'none';
+        }
+        
+        function confirmDeleteSquadra(squadraId, creatorName) {
+            squadraToDeleteId = squadraId;
+            const modal = document.getElementById('confirmDeleteModal');
+            const text = document.getElementById('confirmDeleteText');
+            text.innerHTML = `Sei sicuro di voler eliminare la partita creata da <strong>${creatorName}</strong>?`;
+            modal.style.display = 'flex';
+            document.getElementById('confirmDeleteBtn').onclick = deleteSquadra;
+        }
+
+        function closeConfirmDeleteModal() {
+            document.getElementById('confirmDeleteModal').style.display = 'none';
+            squadraToDeleteId = null;
+        }
+
+        async function deleteSquadra() {
+            if (!squadraToDeleteId) return;
+
+            const deleteButton = document.getElementById('confirmDeleteBtn');
+            deleteButton.disabled = true;
+            deleteButton.textContent = 'Eliminazione...';
+
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/squadre?id=eq.${squadraToDeleteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Errore durante la cancellazione.');
+                }
+                
+                closeConfirmDeleteModal();
+                openViewTeamsModal(); // Refresh the list
+
+            } catch (error) {
+                console.error(error);
+                deleteButton.textContent = 'Errore!';
+                setTimeout(() => {
+                     deleteButton.disabled = false;
+                     deleteButton.textContent = 'Sì, elimina';
+                     closeConfirmDeleteModal();
+                }, 2000);
+            } finally {
+                deleteButton.disabled = false;
+                deleteButton.textContent = 'Sì, elimina';
+            }
+        }
+
+
+        function displaySavedSquadra(squadraId) {
+            const listContainer = document.getElementById('squadre-list-container');
+            const displayContainer = document.getElementById('squadre-display-container');
+
+            const squadra = savedSquadre.find(s => s.id === squadraId);
+            if (!squadra) return;
+
+            listContainer.style.display = 'none';
+            displayContainer.style.display = 'block';
+
+            let html = `
+                <button class="back-to-list-btn" onclick="showSquadreList()">← Torna alla lista</button>
+                <h3 style="text-align: center; margin-bottom: 15px;">Partita di ${squadra.nome_creatore_squadre}</h3>
+            `;
+
+            html += '<div class="team team-a">';
+            html += '<h3>🔴 Squadra A</h3><ul>';
+            (squadra.squadra_a || []).forEach(player => { html += `<li>${player}</li>`; });
+            html += '</ul></div>';
+
+            html += '<div class="team team-b">';
+            html += '<h3>🔵 Squadra B</h3><ul>';
+            (squadra.squadra_b || []).forEach(player => { html += `<li>${player}</li>`; });
+            html += '</ul></div>';
+
+            displayContainer.innerHTML = html;
+        }
+
+        function showSquadreList() {
+            document.getElementById('squadre-list-container').style.display = 'block';
+            document.getElementById('squadre-display-container').style.display = 'none';
+        }
+
+        function setupInputListeners() {
+            const randomInput = document.getElementById('randomPlayerInput');
+            randomInput.value = '';
+            randomInput.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const name = this.value.trim();
+                    if (name) {
+                        randomManualPlayers.push(name);
+                        updateRandomPlayersList();
+                        this.value = '';
+                    }
+                }
+            };
+
+            const manualInput = document.getElementById('manualPlayerInput');
+            manualInput.value = '';
+            manualInput.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addManualPlayer();
+                }
+            };
+        }
+
+        function selectTeam(team) {
+            selectedTeam = team;
+            document.querySelectorAll('.team-select-btn').forEach(btn => btn.classList.remove('active'));
+            if (team === 'A') {
+                document.querySelector('.team-a-btn').classList.add('active');
+            } else {
+                document.querySelector('.team-b-btn').classList.add('active');
+            }
+        }
+
+        function addManualPlayer() {
+            const input = document.getElementById('manualPlayerInput');
+            const name = input.value.trim();
+            if (name) {
+                manualAssignedPlayers[selectedTeam].push(name);
+                updateManualTeamsPreview();
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function updateRandomPlayersList() {
+            const container = document.getElementById('randomPlayersList');
+            let html = '';
+            randomManualPlayers.forEach((player, index) => {
+                html += `
+                    <span class="player-tag">
+                        ${player}
+                        <button class="remove-btn" onclick="removeRandomPlayer(${index})">×</button>
+                    </span>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function removeRandomPlayer(index) {
+            randomManualPlayers.splice(index, 1);
+            updateRandomPlayersList();
+        }
+
+        function updateManualTeamsPreview() {
+            const teamAContainer = document.getElementById('teamAList');
+            let htmlA = '';
+            manualAssignedPlayers.A.forEach((player, index) => {
+                htmlA += `
+                    <div class="team-preview-player">
+                        <span>${player}</span>
+                        <button class="remove-btn" onclick="removeFromTeam('A', ${index})">×</button>
+                    </div>
+                `;
+            });
+            teamAContainer.innerHTML = htmlA || '<p style="text-align: center; opacity: 0.6; font-size: 0.9em;">Nessun giocatore</p>';
+
+            const teamBContainer = document.getElementById('teamBList');
+            let htmlB = '';
+            manualAssignedPlayers.B.forEach((player, index) => {
+                htmlB += `
+                    <div class="team-preview-player">
+                        <span>${player}</span>
+                        <button class="remove-btn" onclick="removeFromTeam('B', ${index})">×</button>
+                    </div>
+                `;
+            });
+            teamBContainer.innerHTML = htmlB || '<p style="text-align: center; opacity: 0.6; font-size: 0.9em;">Nessun giocatore</p>';
+        }
+
+        function removeFromTeam(team, index) {
+            const playerToRemove = manualAssignedPlayers[team][index];
+            manualAssignedPlayers[team].splice(index, 1);
+            updateManualTeamsPreview();
+            renderPlayerListsInModal(); // Refresh DB players list
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`${tab}Tab`).classList.add('active');
+            
+            document.getElementById('teamsResult').innerHTML = '';
+        }
+
+        function generateRandomTeams() {
+            const players = [...randomSelectedDbPlayers, ...randomManualPlayers];
+
+            if (players.length < 2) {
+                const btn = document.querySelector('#randomTab .generate-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Servono almeno 2 giocatori!';
+                setTimeout(() => btn.textContent = originalText, 2000);
+                return;
+            }
+
+            const shuffled = players.sort(() => Math.random() - 0.5);
+            const mid = Math.ceil(shuffled.length / 2);
+            const teamA = shuffled.slice(0, mid);
+            const teamB = shuffled.slice(mid);
+
+            displayTeams(teamA, teamB);
+        }
+
+        function displayTeams(teamA, teamB) {
+            // Salva le squadre generate in variabili globali
+            lastGeneratedTeamA = teamA;
+            lastGeneratedTeamB = teamB;
+
+            const resultDiv = document.getElementById('teamsResult');
+            
+            let html = '<h3 style="text-align: center; margin-bottom: 15px;">🎉 Squadre Create! 🎉</h3>';
+            
+            html += '<div class="team team-a">';
+            html += '<h3>🔴 Squadra A</h3><ul>';
+            teamA.forEach(player => {
+                html += `<li>${player}</li>`;
+            });
+            html += '</ul></div>';
+
+            html += '<div class="team team-b">';
+            html += '<h3>🔵 Squadra B</h3><ul>';
+            teamB.forEach(player => {
+                html += `<li>${player}</li>`;
+            });
+            html += '</ul></div>';
+            
+            // Sezione per salvare le squadre con un `onclick` più sicuro
+            html += `
+                <div class="save-section">
+                    <input type="text" id="creatorNameInput" placeholder="Il tuo nome (creatore)...">
+                    <button class="save-teams-btn" onclick='handleSaveTeams()'>
+                        💾 Salva Squadre
+                    </button>
+                </div>
+            `;
+
+            resultDiv.innerHTML = html;
+        }
+        
+        async function handleSaveTeams() {
+            // Legge le squadre dalle variabili globali
+            const teamA = lastGeneratedTeamA;
+            const teamB = lastGeneratedTeamB;
+
+            const creatorInput = document.getElementById('creatorNameInput');
+            const creatorName = creatorInput.value.trim();
+            const saveButton = document.querySelector('.save-teams-btn');
+
+            if (!creatorName) {
+                creatorInput.style.border = '2px solid #e74c3c';
+                creatorInput.placeholder = 'Il nome è obbligatorio!';
+                return;
+            }
+            creatorInput.style.border = 'none';
+            saveButton.disabled = true;
+            saveButton.textContent = 'Salvataggio in corso...';
+
+            const payload = {
+                nome_creatore_squadre: creatorName,
+                squadra_a: teamA,
+                squadra_b: teamB
+            };
+
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/squadre`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`${errorData.message || response.statusText}`);
+                }
+                
+                saveButton.textContent = '✅ Squadre Salvate!';
+
+            } catch (error) {
+                console.error("Errore nel salvaggio:", error);
+                
+                if (error.message && error.message.includes('violates row-level security')) {
+                    saveButton.style.fontSize = '0.8em'; // Testo più piccolo per farlo stare
+                    saveButton.innerHTML = '❌ Errore! Disabilita RLS per la tabella "squadre" su Supabase.';
+                } else {
+                    saveButton.textContent = '❌ Errore nel salvaggio';
+                }
+
+                setTimeout(() => {
+                    saveButton.disabled = false;
+                    saveButton.textContent = '💾 Salva Squadre';
+                    saveButton.style.fontSize = '1.1em';
+                }, 5000); // Timeout più lungo per leggere il messaggio
+            }
+        }
+        
+        async function handleManualSave() {
+            const teamA = manualAssignedPlayers.A;
+            const teamB = manualAssignedPlayers.B;
+
+            const creatorInput = document.getElementById('manualCreatorNameInput');
+            const creatorName = creatorInput.value.trim();
+            const saveButton = document.querySelector('#manualTab .save-teams-btn');
+
+            if (teamA.length === 0 && teamB.length === 0) {
+                const originalText = saveButton.textContent;
+                saveButton.textContent = 'Aggiungi giocatori!';
+                setTimeout(() => saveButton.textContent = originalText, 2000);
+                return;
+            }
+
+            if (!creatorName) {
+                creatorInput.style.border = '2px solid #e74c3c';
+                creatorInput.placeholder = 'Il nome è obbligatorio!';
+                return;
+            }
+            creatorInput.style.border = 'none';
+            saveButton.disabled = true;
+            saveButton.textContent = 'Salvataggio in corso...';
+
+            const payload = {
+                nome_creatore_squadre: creatorName,
+                squadra_a: teamA,
+                squadra_b: teamB
+            };
+
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/squadre`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`${errorData.message || response.statusText}`);
+                }
+                
+                saveButton.textContent = '✅ Squadre Salvate!';
+
+            } catch (error) {
+                console.error("Errore nel salvaggio manuale:", error);
+                
+                if (error.message && error.message.includes('violates row-level security')) {
+                    saveButton.style.fontSize = '0.8em';
+                    saveButton.innerHTML = '❌ Errore! Disabilita RLS per la tabella "squadre" su Supabase.';
+                } else {
+                    saveButton.textContent = '❌ Errore nel salvaggio';
+                }
+
+                setTimeout(() => {
+                    saveButton.disabled = false;
+                    saveButton.textContent = '💾 Salva Squadre';
+                    saveButton.style.fontSize = '1.1em';
+                }, 5000);
+            }
+        }
+
+
+        // Chiudi modal cliccando fuori
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Carica all'avvio
+        document.addEventListener('DOMContentLoaded', loadLeaderboard);
+    </script>
+</body>
+</html>
+
