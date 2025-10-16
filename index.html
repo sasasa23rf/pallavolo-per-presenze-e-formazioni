@@ -794,6 +794,7 @@
                     <!-- Lista giocatori caricata da JS -->
                 </div>
                 <button class="save-teams-btn" id="add-presence-btn" onclick="addPresences()">Aggiungi 1 Presenza ai Selezionati</button>
+                <button class="save-teams-btn" id="subtract-presence-btn" style="background: #e74c3c; margin-top: 10px;" onclick="subtractPresences()">Sottrai 1 Presenza ai Selezionati</button>
             </div>
         </div>
     </div>
@@ -1589,6 +1590,63 @@
                 setTimeout(() => {
                     addButton.disabled = false;
                     addButton.textContent = 'Aggiungi 1 Presenza ai Selezionati';
+                }, 3000);
+            }
+        }
+
+        async function subtractPresences() {
+            const subtractButton = document.getElementById('subtract-presence-btn');
+            if (adminSelectedPlayers.length === 0) {
+                const originalText = subtractButton.textContent;
+                subtractButton.textContent = 'Seleziona un giocatore!';
+                setTimeout(() => { subtractButton.textContent = originalText; }, 2000);
+                return;
+            }
+
+            subtractButton.disabled = true;
+            subtractButton.textContent = 'Aggiornamento...';
+
+            const updatePromises = adminSelectedPlayers.map(playerName => {
+                const player = dbPlayers.find(p => p.nome === playerName);
+                if (!player) return Promise.resolve(); // Skip if player not found
+
+                const newPresenze = Math.max(0, player.presenze - 1); // Subtract 1, but not below 0
+
+                return fetch(`${supabaseUrl}/rest/v1/presenze?nome=eq.${encodeURIComponent(playerName)}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ presenze: newPresenze })
+                });
+            });
+
+            try {
+                const responses = await Promise.all(updatePromises);
+                // Check if any response was not ok
+                for (const res of responses) {
+                    if (res && !res.ok) {
+                        throw new Error('Uno o più aggiornamenti sono falliti.');
+                    }
+                }
+                
+                subtractButton.textContent = '✅ Presenze Sottratte!';
+                setTimeout(() => {
+                    closeAdminModal();
+                    loadLeaderboard(); // Refresh leaderboard
+                    subtractButton.disabled = false;
+                    subtractButton.textContent = 'Sottrai 1 Presenza ai Selezionati';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Errore sottrazione presenze:', error);
+                subtractButton.textContent = '❌ Errore!';
+                setTimeout(() => {
+                    subtractButton.disabled = false;
+                    subtractButton.textContent = 'Sottrai 1 Presenza ai Selezionati';
                 }, 3000);
             }
         }
