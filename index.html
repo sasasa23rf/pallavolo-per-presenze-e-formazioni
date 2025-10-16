@@ -104,7 +104,7 @@
         }
 
         .player-card {
-            background: rgba(255,255,255,0.2);
+            background: rgba(0, 100, 70, 0.25); /* Sfondo verde chiaro per default */
             border-radius: 12px;
             padding: 12px; /* Leggermente ridotto */
             margin-bottom: 12px;
@@ -120,15 +120,22 @@
             border-color: rgba(255,255,255,0.5);
         }
 
-        .player-card.top-3 {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-            color: #333; /* Improved text color for top players */
-            border: 2px solid #f39c12;
+        .player-card.top-1 { /* Oro */
+            background: linear-gradient(135deg, #ffd700 0%, #f7b733 100%);
+            color: #333;
+            border-color: #f39c12;
         }
-        
-        .player-card.top-3 .player-presences-badge {
-            background: #e67e22;
+
+        .player-card.top-2 { /* Argento */
+            background: linear-gradient(135deg, #e0e0e0 0%, #b0b0b0 100%);
+            color: #333;
+            border-color: #a9a9a9;
+        }
+
+        .player-card.top-3 { /* Bronzo */
+            background: linear-gradient(135deg, #cd7f32 0%, #a0522d 100%);
             color: white;
+            border-color: #8B4513;
         }
 
         .player-rank-container {
@@ -158,6 +165,12 @@
             margin-left: 10px;
             flex-shrink: 0;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .player-card.top-1 .player-presences-badge,
+        .player-card.top-2 .player-presences-badge {
+            background-color: rgba(0,0,0,0.15);
+            color: #fff;
         }
 
         .player-info {
@@ -613,6 +626,24 @@
             font-weight: bold;
         }
 
+        .admin-btn {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 12px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -643,6 +674,8 @@
             <div class="leaderboard-title">🏆 Classifica Presenze 🏆</div>
             <div id="leaderboard-content" class="loading">Caricamento...</div>
         </div>
+        
+        <button class="admin-btn" onclick="openAdminModal()">🔑 Admin</button>
     </div>
 
     <!-- Modal Teams -->
@@ -739,6 +772,31 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modal Admin -->
+    <div id="adminModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeAdminModal()">×</button>
+            
+            <!-- Vista Login -->
+            <div id="admin-login-view">
+                <h2>Accesso Admin</h2>
+                <input type="password" id="adminPassword" placeholder="Inserisci la password...">
+                <button class="save-teams-btn" onclick="handleAdminLogin()">Accedi</button>
+                <p id="admin-error" style="color: #ff6b6b; text-align: center; margin-top: 10px; display: none;">Password errata!</p>
+            </div>
+
+            <!-- Vista Pannello Admin -->
+            <div id="admin-panel-view" style="display: none;">
+                <h2>Aggiungi Presenze</h2>
+                <p style="text-align:center; margin-bottom: 15px;">Seleziona i giocatori presenti:</p>
+                <div id="admin-players-list" class="db-players-grid" style="max-height: 300px;">
+                    <!-- Lista giocatori caricata da JS -->
+                </div>
+                <button class="save-teams-btn" id="add-presence-btn" onclick="addPresences()">Aggiungi 1 Presenza ai Selezionati</button>
+            </div>
+        </div>
+    </div>
 
 
     <script>
@@ -756,6 +814,7 @@
         let selectedTeam = 'A';
         let savedSquadre = [];
         let squadraToDeleteId = null;
+        let adminSelectedPlayers = [];
         
         // Variabili globali per memorizzare le ultime squadre generate
         let lastGeneratedTeamA = [];
@@ -790,11 +849,36 @@
                 // Ordina per presenze
                 data.sort((a, b) => b.presenze - a.presenze);
 
+                // Trova i primi tre punteggi unici
+                const uniqueScores = [...new Set(data.map(p => p.presenze))].sort((a, b) => b - a);
+                const firstScore = uniqueScores.length > 0 ? uniqueScores[0] : null;
+                const secondScore = uniqueScores.length > 1 ? uniqueScores[1] : null;
+                const thirdScore = uniqueScores.length > 2 ? uniqueScores[2] : null;
+                
                 let html = '';
+                let currentRank = 0;
+                let lastScore = -1;
+
                 data.forEach((player, index) => {
-                    const rank = index + 1;
-                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
-                    const topClass = rank <= 3 ? 'top-3' : '';
+                    // Gestione della classifica per i pareggi
+                    if (player.presenze !== lastScore) {
+                        currentRank = index + 1;
+                        lastScore = player.presenze;
+                    }
+                    
+                    let topClass = '';
+                    let medal = '';
+                    if (player.presenze === firstScore && firstScore !== null) {
+                        topClass = 'top-1';
+                        medal = '🥇';
+                    } else if (player.presenze === secondScore && secondScore !== null) {
+                        topClass = 'top-2';
+                        medal = '🥈';
+                    } else if (player.presenze === thirdScore && thirdScore !== null) {
+                        topClass = 'top-3';
+                        medal = '🥉';
+                    }
+
 
                     // Modifica per mandare a capo il nome
                     const nameParts = player.nome.split(' ');
@@ -805,7 +889,7 @@
                     html += `
                         <div class="player-card ${topClass}">
                             <div class="player-rank-container">
-                                <div class="player-rank">${rank}°</div>
+                                <div class="player-rank">${currentRank}°</div>
                                 <div class="player-presences-badge">${player.presenze}</div>
                             </div>
                             <div class="player-info">
@@ -1398,6 +1482,114 @@
                     saveButton.textContent = '💾 Salva Squadre';
                     saveButton.style.fontSize = '1.1em';
                 }, 5000);
+            }
+        }
+        
+        function openAdminModal() {
+            const modal = document.getElementById('adminModal');
+            modal.style.display = 'flex';
+            // Reset to login view every time
+            document.getElementById('admin-login-view').style.display = 'block';
+            document.getElementById('admin-panel-view').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('admin-error').style.display = 'none';
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').style.display = 'none';
+        }
+
+        function handleAdminLogin() {
+            const passwordInput = document.getElementById('adminPassword');
+            const errorMsg = document.getElementById('admin-error');
+            if (passwordInput.value === 'pallavolo') {
+                document.getElementById('admin-login-view').style.display = 'none';
+                document.getElementById('admin-panel-view').style.display = 'block';
+                errorMsg.style.display = 'none';
+                populateAdminPlayerList();
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        function populateAdminPlayerList() {
+            const container = document.getElementById('admin-players-list');
+            container.innerHTML = '';
+            adminSelectedPlayers = []; // Reset selections
+            dbPlayers.forEach(player => {
+                const playerEl = document.createElement('div');
+                playerEl.className = 'db-player-selectable';
+                playerEl.textContent = player.nome;
+                playerEl.onclick = () => toggleAdminPlayerSelection(playerEl, player.nome);
+                container.appendChild(playerEl);
+            });
+        }
+
+        function toggleAdminPlayerSelection(element, playerName) {
+            const index = adminSelectedPlayers.indexOf(playerName);
+            if (index > -1) {
+                adminSelectedPlayers.splice(index, 1);
+                element.classList.remove('selected');
+            } else {
+                adminSelectedPlayers.push(playerName);
+                element.classList.add('selected');
+            }
+        }
+
+        async function addPresences() {
+            const addButton = document.getElementById('add-presence-btn');
+            if (adminSelectedPlayers.length === 0) {
+                const originalText = addButton.textContent;
+                addButton.textContent = 'Seleziona un giocatore!';
+                setTimeout(() => { addButton.textContent = originalText; }, 2000);
+                return;
+            }
+
+            addButton.disabled = true;
+            addButton.textContent = 'Aggiornamento...';
+
+            const updatePromises = adminSelectedPlayers.map(playerName => {
+                const player = dbPlayers.find(p => p.nome === playerName);
+                if (!player) return Promise.resolve(); // Skip if player not found
+
+                const newPresenze = player.presenze + 1;
+
+                return fetch(`${supabaseUrl}/rest/v1/presenze?nome=eq.${encodeURIComponent(playerName)}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ presenze: newPresenze })
+                });
+            });
+
+            try {
+                const responses = await Promise.all(updatePromises);
+                // Check if any response was not ok
+                for (const res of responses) {
+                    if (res && !res.ok) {
+                        throw new Error('Uno o più aggiornamenti sono falliti.');
+                    }
+                }
+                
+                addButton.textContent = '✅ Presenze Aggiunte!';
+                setTimeout(() => {
+                    closeAdminModal();
+                    loadLeaderboard(); // Refresh leaderboard
+                    addButton.disabled = false;
+                    addButton.textContent = 'Aggiungi 1 Presenza ai Selezionati';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Errore aggiornamento presenze:', error);
+                addButton.textContent = '❌ Errore!';
+                setTimeout(() => {
+                    addButton.disabled = false;
+                    addButton.textContent = 'Aggiungi 1 Presenza ai Selezionati';
+                }, 3000);
             }
         }
 
