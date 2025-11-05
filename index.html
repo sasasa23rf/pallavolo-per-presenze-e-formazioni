@@ -439,8 +439,9 @@
             padding: 10px 15px;
             margin-bottom: 8px;
             border-radius: 8px;
-            font-size: 1.1em;
+            font-size: 1.0em; /* Ridotto da 1.1em */
             animation: slideIn 0.3s ease;
+            overflow-wrap: break-word; /* Aggiunto per mandare a capo i nomi lunghi */
         }
 
         /* --- NUOVA CLASSE PER LAYOUT AFFIANCATO --- */
@@ -449,6 +450,10 @@
             grid-template-columns: 1fr 1fr;
             gap: 15px; /* Spazio tra le due squadre */
             margin-bottom: 20px; /* Spazio prima del pulsante "Rigenera" */
+        }
+        /* Aggiunta regola per permettere alle colonne di restringersi */
+        .teams-grid-container .team {
+            min-width: 0; /* Permette alla colonna di restringersi sotto la larghezza minima del contenuto */
         }
         /* --- FINE --- */
         
@@ -1748,7 +1753,7 @@
             html += `
                 <div class="save-section" style="margin-top: 15px; padding: 0; background: none;">
                     <button class="save-teams-btn" style="background: #3498db;" onclick='shareFastGenTeams(this)'>
-                        🚀 Condividi Squadre Whatsapp 🚀
+                        🚀 Condividi Squadre
                     </button>
                 </div>
             `;
