@@ -448,12 +448,16 @@
         .teams-grid-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px; /* Spazio tra le due squadre */
+            gap: 10px; /* Ridotto da 15px per allargare le colonne */
             margin-bottom: 20px; /* Spazio prima del pulsante "Rigenera" */
         }
         /* Aggiunta regola per permettere alle colonne di restringersi */
         .teams-grid-container .team {
             min-width: 0; /* Permette alla colonna di restringersi sotto la larghezza minima del contenuto */
+        }
+        /* --- NUOVA REGOLA PER RIDURRE PADDING INTERNO --- */
+        #fastGenResult .teams-grid-container .team {
+            padding: 15px; /* Ridotto da 20px per dare più spazio ai nomi */
         }
         /* --- FINE --- */
         
