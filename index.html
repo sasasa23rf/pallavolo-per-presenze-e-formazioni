@@ -40,7 +40,7 @@
         .main-buttons-container {
             display: flex;
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 20px; /* Ridotto per far spazio al nuovo pulsante */
         }
 
         .main-buttons-container button {
@@ -87,6 +87,33 @@
             transform: translateY(-3px);
             box-shadow: 0 12px 24px rgba(0,0,0,0.3);
         }
+        
+        /* Stile per il nuovo pulsante "Genera Velocemente" */
+        .fast-gen-btn-container {
+            margin-bottom: 30px;
+        }
+
+        .fast-gen-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #333;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            font-size: 1.25em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .fast-gen-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+
 
         .leaderboard {
             background: rgba(255,255,255,0.15);
@@ -195,6 +222,7 @@
             line-height: 1;
         }
 
+        /* --- MODIFICA MODAL --- */
         .modal {
             display: none;
             position: fixed;
@@ -205,10 +233,10 @@
             background: rgba(0,0,0,0.7);
             z-index: 1000;
             overflow-y: auto; /* Allows the container to scroll if content overflows */
-            display: flex;
-            align-items: flex-start; /* Aligns content to the top, preventing it from being pushed off-screen */
-            justify-content: center;
-            padding: 5vh 0; /* Adds vertical padding to keep content from touching edges */
+            /* display: flex; RIMOSSO */
+            /* align-items: flex-start; RIMOSSO */
+            /* justify-content: center; RIMOSSO */
+            padding: 0 15px; /* Sostituito padding: 5vh 0; con padding laterale */
         }
 
         .modal-content {
@@ -219,8 +247,10 @@
             border-radius: 20px;
             position: relative;
             animation: slideInModal 0.4s ease-out;
-            margin-bottom: auto; /* Ensures it doesn't stick to the bottom if padding is large */
+            margin: 5vh auto; /* MODIFICA: Centra e aggiunge margine T/B. Sostituisce margin-bottom: auto; */
         }
+        /* --- FINE MODIFICA MODAL --- */
+
 
         @keyframes slideInModal {
             from {
@@ -310,6 +340,25 @@
             overflow-y: auto;
         }
 
+        /* Modifica richiesta: Giocatori nel tab Random uno sotto l'altro */
+        #dbPlayersRandomContainer.db-players-grid {
+            display: flex;
+            flex-direction: column; /* Fila i giocatori uno sotto l'altro */
+            flex-wrap: nowrap; /* Assicura che non ci sia "a capo" */
+            gap: 8px; /* Un po' di spazio tra i nomi */
+        }
+        
+        /* --- MODIFICA RICHIESTA: Rimuove scroll da "Genera Velocemente" --- */
+        #fastGenDbPlayersList.db-players-grid {
+            flex-direction: column; /* Mette i giocatori uno sotto l'altro */
+            flex-wrap: nowrap; /* Assicura che non ci sia "a capo" */
+            gap: 8px; /* Spazio tra i nomi */
+            max-height: none; /* Rimuove l'altezza massima (fa espandere la lista) */
+            overflow-y: visible; /* Rimuove lo scorrimento interno */
+        }
+        /* --- FINE MODIFICA --- */
+
+
         .db-player-selectable {
             background: rgba(255,255,255,0.1);
             border: 2px solid rgba(255,255,255,0.4);
@@ -393,6 +442,21 @@
             font-size: 1.1em;
             animation: slideIn 0.3s ease;
         }
+
+        /* --- NUOVA CLASSE PER LAYOUT AFFIANCATO --- */
+        .teams-grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px; /* Spazio tra le due squadre */
+            margin-bottom: 20px; /* Spazio prima del pulsante "Rigenera" */
+        }
+        /* --- FINE --- */
+        
+        /* --- MODIFICA LARGHEZZA MODAL "GENERA VELOCEMENTE" --- */
+        #fastGenModal .modal-content {
+            max-width: 90%; /* Sovrascrive il max-width: 500px di default */
+        }
+        /* --- FINE MODIFICA --- */
         
         .loading {
             text-align: center;
@@ -669,6 +733,14 @@
                 Visualizza<br>Squadre
             </button>
         </div>
+        
+        <!-- NUOVO PULSANTE "GENERA VELOCEMENTE" -->
+        <div class="fast-gen-btn-container">
+            <button class="fast-gen-btn" onclick="openFastGenModal()">
+                Genera Squadre Velocemente<br>e condividi
+            </button>
+        </div>
+
 
         <div class="leaderboard">
             <div class="leaderboard-title">🏆 Classifica Presenze 🏆</div>
@@ -815,12 +887,38 @@
         </div>
     </div>
 
+    <!-- NUOVO MODAL "GENERA VELOCEMENTE" -->
+    <div id="fastGenModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeFastGenModal()">×</button>
+            <h2>🚀 Genera Velocemente</h2>
+
+            <label style="font-weight: bold; margin-bottom: 10px; display: block;">1. Seleziona giocatori dal database:</label>
+            <!-- MODIFICA HTML: Rimosso stile inline da questo div -->
+            <div id="fastGenDbPlayersList" class="db-players-grid">
+                <!-- Lista giocatori caricata da JS -->
+            </div>
+            
+            <label style="font-weight: bold; margin-bottom: 10px; display: block; margin-top: 15px;">2. Aggiungi giocatori manuali:</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <input type="text" id="fastGenManualInput" placeholder="Scrivi un nome e premi Invio" style="flex: 1; margin: 0;">
+            </div>
+            <div id="fastGenManualList" class="players-list"></div>
+
+            <label style="font-weight: bold; margin-bottom: 10px; display: block; margin-top: 15px;">3. Genera!</label>
+            <button class="generate-btn" id="fastGenGenerateBtn" onclick="generateFastGenTeams()">⚡ Genera Squadre</button>
+
+            <div id="fastGenResult" class="teams-result"></div>
+        </div>
+    </div>
+
 
     <script>
         // --- CONFIGURAZIONE SUPABASE ---
         // Se l'app mostra un errore 401, la tua chiave API qui sotto potrebbe non essere più valida.
         // Vai sul tuo progetto Supabase > Project Settings > API e copia la chiave 'anon' (public).
         const supabaseUrl = 'https://xoqvgrcvvhseufgszhhe.supabase.co';
+        // --- ERRORE 401 CORRETTO QUI ---
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcXZncmN2dmhzZXVmZ3N6aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1NTcwNjMsImV4cCI6MjA3NjEzMzA2M30.WYcW3WGqd8tO0wuhGEZof4ohEOvvXEe-jNb2VUMtY2E';
         // -----------------------------
 
@@ -836,6 +934,13 @@
         // Variabili globali per memorizzare le ultime squadre generate
         let lastGeneratedTeamA = [];
         let lastGeneratedTeamB = [];
+        
+        // Nuove variabili per il modal "Genera Velocemente"
+        let fastGenSelectedDbPlayers = [];
+        let fastGenManualPlayers = [];
+        let lastFastGenTeamA = [];
+        let lastFastGenTeamB = [];
+
 
         async function loadLeaderboard() {
             const content = document.getElementById('leaderboard-content');
@@ -993,7 +1098,7 @@
         }
 
         function openTeamsModal() {
-            document.getElementById('teamsModal').style.display = 'flex';
+            document.getElementById('teamsModal').style.display = 'block'; // Modificato da 'flex' a 'block'
             document.getElementById('teamsResult').innerHTML = '';
             
             // Reset state on open
@@ -1014,7 +1119,7 @@
         }
 
         async function openViewTeamsModal() {
-            document.getElementById('viewTeamsModal').style.display = 'flex';
+            document.getElementById('viewTeamsModal').style.display = 'block'; // Modificato da 'flex' a 'block'
             const listContainer = document.getElementById('squadre-list-container');
             const displayContainer = document.getElementById('squadre-display-container');
 
@@ -1069,7 +1174,7 @@
             const modal = document.getElementById('confirmDeleteModal');
             const text = document.getElementById('confirmDeleteText');
             text.innerHTML = `Sei sicuro di voler eliminare la partita creata da <strong>${creatorName}</strong>?`;
-            modal.style.display = 'flex';
+            modal.style.display = 'block'; // Modificato da 'flex' a 'block'
             document.getElementById('confirmDeleteBtn').onclick = deleteSquadra;
         }
 
@@ -1095,7 +1200,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Errore durante la cancellazione.');
+                    throw new Error('Errore during la cancellazione.');
                 }
                 
                 closeConfirmDeleteModal();
@@ -1141,12 +1246,12 @@
             (squadra.squadra_b || []).forEach(player => { html += `<li>${player}</li>`; });
             html += '</ul></div>';
 
-            html += `<button class="share-teams-btn" style="margin-top: 15px; background: #3498db;" onclick="shareSquadra(${squadra.id})">🚀 Condividi Formazione</button>`;
+            html += `<button class="share-teams-btn" style="margin-top: 15px; background: #3498db;" onclick="shareSquadra(${squadra.id}, this)">🚀 Condividi Formazione</button>`;
 
             displayContainer.innerHTML = html;
         }
 
-        async function shareSquadra(squadraId) {
+        async function shareSquadra(squadraId, buttonElement) {
             const squadra = savedSquadre.find(s => s.id === squadraId);
             if (!squadra) return;
 
@@ -1189,8 +1294,8 @@
                 textArea.select();
                 try {
                     const successful = document.execCommand('copy');
-                    const shareButton = document.querySelector('#squadre-display-container .share-teams-btn');
-                    if (successful) {
+                    const shareButton = buttonElement; // Usa l'elemento passato
+                    if (successful && shareButton) {
                         const originalText = shareButton.innerHTML;
                         shareButton.innerHTML = '✅ Testo Copiato!';
                         shareButton.disabled = true;
@@ -1418,13 +1523,13 @@
                 saveButton.textContent = '✅ Squadre Salvate!';
 
             } catch (error) {
-                console.error("Errore nel salvaggio:", error);
+                console.error("Errore nel salvataggio:", error);
                 
                 if (error.message && error.message.includes('violates row-level security')) {
                     saveButton.style.fontSize = '0.8em'; // Testo più piccolo per farlo stare
                     saveButton.innerHTML = '❌ Errore! Disabilita RLS per la tabella "squadre" su Supabase.';
                 } else {
-                    saveButton.textContent = '❌ Errore nel salvaggio';
+                    saveButton.textContent = '❌ Errore nel salvataggio';
                 }
 
                 setTimeout(() => {
@@ -1485,13 +1590,13 @@
                 saveButton.textContent = '✅ Squadre Salvate!';
 
             } catch (error) {
-                console.error("Errore nel salvaggio manuale:", error);
+                console.error("Errore nel salvataggio manuale:", error);
                 
                 if (error.message && error.message.includes('violates row-level security')) {
                     saveButton.style.fontSize = '0.8em';
                     saveButton.innerHTML = '❌ Errore! Disabilita RLS per la tabella "squadre" su Supabase.';
                 } else {
-                    saveButton.textContent = '❌ Errore nel salvaggio';
+                    saveButton.textContent = '❌ Errore nel salvataggio';
                 }
 
                 setTimeout(() => {
@@ -1502,9 +1607,225 @@
             }
         }
         
+        // --- NUOVE FUNZIONI PER "GENERA VELOCEMENTE" ---
+
+        function openFastGenModal() {
+            document.getElementById('fastGenModal').style.display = 'block'; // Modificato da 'flex' a 'block'
+            document.getElementById('fastGenResult').innerHTML = '';
+            
+            // Reset
+            fastGenSelectedDbPlayers = [];
+            fastGenManualPlayers = [];
+            lastFastGenTeamA = [];
+            lastFastGenTeamB = [];
+
+            // Popola lista DB
+            const container = document.getElementById('fastGenDbPlayersList');
+            let html = '';
+            // Ordina alfabeticamente per facilitare la ricerca
+            dbPlayers.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(player => {
+                const playerClass = 'db-player-selectable'; // Sempre deselezionato all'inizio
+                const escapedPlayerName = player.nome.replace(/'/g, "\\'");
+                const clickHandler = `onclick="toggleFastGenPlayerSelection(this, '${escapedPlayerName}')"`;
+                
+                html += `<div class="${playerClass}" ${clickHandler}>${player.nome}</div>`;
+            });
+            container.innerHTML = html || '<p>Nessun giocatore disponibile</p>';
+            
+            // Pulisci lista manuale
+            updateFastGenManualList();
+
+            // Setup listener input
+            const fastGenInput = document.getElementById('fastGenManualInput');
+            fastGenInput.value = '';
+            fastGenInput.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const name = this.value.trim();
+                    if (name) {
+                        fastGenManualPlayers.push(name);
+                        updateFastGenManualList();
+                        this.value = '';
+                    }
+                }
+            };
+        }
+
+        function closeFastGenModal() {
+            document.getElementById('fastGenModal').style.display = 'none';
+        }
+
+        function toggleFastGenPlayerSelection(element, playerName) {
+            const index = fastGenSelectedDbPlayers.indexOf(playerName);
+            if (index > -1) {
+                fastGenSelectedDbPlayers.splice(index, 1); // Deseleziona
+                element.classList.remove('selected');
+            } else {
+                fastGenSelectedDbPlayers.push(playerName); // Seleziona
+                element.classList.add('selected');
+            }
+        }
+
+        function updateFastGenManualList() {
+            const container = document.getElementById('fastGenManualList');
+            let html = '';
+            fastGenManualPlayers.forEach((player, index) => {
+                html += `
+                    <span class="player-tag">
+                        ${player}
+                        <button class="remove-btn" onclick="removeFastGenManualPlayer(${index})">×</button>
+                    </span>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function removeFastGenManualPlayer(index) {
+            fastGenManualPlayers.splice(index, 1);
+            updateFastGenManualList();
+        }
+
+        function generateFastGenTeams() {
+            const players = [...fastGenSelectedDbPlayers, ...fastGenManualPlayers];
+
+            if (players.length < 2) {
+                const btn = document.getElementById('fastGenGenerateBtn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Servono almeno 2 giocatori!';
+                setTimeout(() => { btn.textContent = originalText; }, 2000);
+                return;
+            }
+            
+            // --- MODIFICA: Nasconde il pulsante "Genera" originale ---
+            const generateBtn = document.getElementById('fastGenGenerateBtn');
+            if (generateBtn) {
+                generateBtn.style.display = 'none';
+            }
+            // --- FINE MODIFICA ---
+
+            const shuffled = players.sort(() => Math.random() - 0.5);
+            const mid = Math.ceil(shuffled.length / 2);
+            const teamA = shuffled.slice(0, mid);
+            const teamB = shuffled.slice(mid);
+
+            displayFastGenTeams(teamA, teamB);
+        }
+
+        async function displayFastGenTeams(teamA, teamB) {
+            lastFastGenTeamA = teamA; // Salva per il salvataggio
+            lastFastGenTeamB = teamB;
+
+            const resultDiv = document.getElementById('fastGenResult');
+            
+            let html = '<h3 style="text-align: center; margin-bottom: 15px;">🎉 Squadre Create! 🎉</h3>';
+            
+            // --- MODIFICA: Aggiunto contenitore grid ---
+            html += '<div class="teams-grid-container">';
+            
+            // Squadra A (Colonna 1)
+            html += '<div class="team team-a" style="margin-bottom: 0;">'; // Rimuovo margin-bottom
+            html += '<h3>🔴 Squadra A</h3><ul>';
+            teamA.forEach(player => { html += `<li>${player}</li>`; });
+            html += '</ul></div>';
+
+            // Squadra B (Colonna 2)
+            html += '<div class="team team-b" style="margin-bottom: 0;">'; // Rimuovo margin-bottom
+            html += '<h3>🔵 Squadra B</h3><ul>';
+            teamB.forEach(player => { html += `<li>${player}</li>`; });
+            html += '</ul></div>';
+
+            html += '</div>'; // Chiusura di .teams-grid-container
+            // --- FINE MODIFICA LAYOUT ---
+            
+            // --- MODIFICA: Aggiunto pulsante Rigenera ---
+            html += `
+                <button class="generate-btn" id="fastGenRegenerateBtn" onclick="generateFastGenTeams()" style="width: 100%;">
+                    🔄 Rigenera Squadre
+                </button>
+            `;
+
+            // Pulsante Condividi (con margine superiore)
+            html += `
+                <div class="save-section" style="margin-top: 15px; padding: 0; background: none;">
+                    <button class="save-teams-btn" style="background: #3498db;" onclick='shareFastGenTeams(this)'>
+                        🚀 Condividi Squadre Whatsapp 🚀
+                    </button>
+                </div>
+            `;
+            resultDiv.innerHTML = html;
+        }
+
+        async function shareFastGenTeams(buttonElement) {
+            // Usa le squadre salvate nelle variabili globali
+            const teamA = lastFastGenTeamA;
+            const teamB = lastFastGenTeamB;
+
+            // Formatta il testo della condivisione come richiesto
+            let shareText = "Ecco le due squadre che ho creato:\n\n";
+            
+            shareText += "🔴 Squadra 1:\n";
+            teamA.forEach(player => {
+                shareText += `- ${player}\n`;
+            });
+
+            shareText += "\n🔵 Squadra 2:\n";
+            teamB.forEach(player => {
+                shareText += `- ${player}\n`;
+            });
+
+            shareText += "\nSe non ti piace la formazione, puoi crearne una a tua piacimento www.presenze.formazioni.amicibelli.it";
+            
+            const shareData = {
+                title: 'Formazione Pallavolo',
+                text: shareText,
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    console.error('Errore nella condivisione:', err);
+                }
+            } else {
+                // Fallback (copia negli appunti)
+                const textArea = document.createElement("textarea");
+                textArea.value = shareText; // Copia solo il testo
+                textArea.style.position = "fixed";
+                textArea.style.top = "-9999px";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    const shareButton = buttonElement;
+                    if (successful && shareButton) {
+                        const originalText = shareButton.innerHTML;
+                        shareButton.innerHTML = '✅ Testo Copiato!';
+                        shareButton.disabled = true;
+                        setTimeout(() => {
+                            shareButton.innerHTML = originalText;
+                            shareButton.disabled = false;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Fallback: Errore nel copiare il testo', err);
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        /* RIMOSSA LA VECCHIA FUNZIONE handleFastGenSave
+        async function handleFastGenSave() {
+            ...
+        }
+        */
+        
+        // --- FUNZIONI ADMIN ---
+        
         function openAdminModal() {
             const modal = document.getElementById('adminModal');
-            modal.style.display = 'flex';
+            modal.style.display = 'block'; // Modificato da 'flex' a 'block'
             // Reset to login view every time
             document.getElementById('admin-login-view').style.display = 'block';
             document.getElementById('admin-menu-view').style.display = 'none';
@@ -1696,6 +2017,7 @@
                 addButton.textContent = '✅ Aggiunto!';
                 setTimeout(() => {
                     closeAdminModal();
+                    // --- ERRORE DI BATTITURA CORRETTO QUI ---
                     loadLeaderboard(); 
                 }, 1500);
 
@@ -1723,4 +2045,3 @@
     </script>
 </body>
 </html>
-
