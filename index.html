@@ -732,8 +732,8 @@
     </style>
 </head>
 <body>
-    <!-- 1. TAG AUDIO AGGIUNTO -->
-    <audio id="background-music" src="audio.mp3" loop autoplay muted></audio>
+    <!-- 1. TAG AUDIO AGGIUNTO (CON playsinline) -->
+    <audio id="background-music" src="audio.mp3" loop autoplay muted playsinline></audio>
     
     <div class="container">
         <div class="volleyball-emoji">🏐</div>
@@ -928,7 +928,7 @@
 
 
     <script>
-        // --- 2. BLOCCO JS AGGIUNTO (MODIFICATO PER COMPATIBILITÀ MOBILE) ---
+        // --- 2. BLOCCO JS AGGIUNTO (MODIFICATO PER ROBUSTEZZA) ---
         // Sblocca l'audio al primo click dell'utente
         function unmuteAudioOnFirstInteraction() {
             const music = document.getElementById('background-music');
@@ -937,20 +937,28 @@
                 // Rimuovi subito i listener per evitare che venga eseguito più volte
                 document.body.removeEventListener('click', unmuteAudioOnFirstInteraction);
                 document.body.removeEventListener('touchstart', unmuteAudioOnFirstInteraction);
+                document.body.removeEventListener('touchend', unmuteAudioOnFirstInteraction); // Aggiunto
 
                 // Prova a fare play() PRIMA di togliere il muto.
-                // Questo è il "gesto utente" che sblocca l'audio.
                 music.play().then(() => {
-                    // Se il play() ha successo, ORA possiamo togliere il muto.
+                    // SUCCESSO! Il play() è stato autorizzato. Ora togli il muto.
                     music.muted = false;
                 }).catch(e => {
-                    // Il play() è fallito nonostante l'interazione.
-                    console.warn("Tentativo di play() fallito: ", e);
+                    // FALLITO. Il browser ha bloccato il play().
+                    console.warn("Tentativo di play() fallito (interazione non valida): ", e);
+                    
+                    // RI-ATTACCA I LISTENER.
+                    // Il primo tocco non era valido, ma il prossimo (magari su un
+                    // pulsante vero e proprio) potrebbe esserlo.
+                    document.body.addEventListener('click', unmuteAudioOnFirstInteraction);
+                    document.body.addEventListener('touchstart', unmuteAudioOnFirstInteraction);
+                    document.body.addEventListener('touchend', unmuteAudioOnFirstInteraction); // Aggiunto
                 });
             }
         }
         document.body.addEventListener('click', unmuteAudioOnFirstInteraction);
         document.body.addEventListener('touchstart', unmuteAudioOnFirstInteraction);
+        document.body.addEventListener('touchend', unmuteAudioOnFirstInteraction); // Aggiunto
         // --- FINE BLOCCO JS AGGIUNTO ---
 
 
