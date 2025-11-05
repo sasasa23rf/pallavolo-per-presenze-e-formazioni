@@ -732,6 +732,9 @@
     </style>
 </head>
 <body>
+    <!-- 1. TAG AUDIO AGGIUNTO -->
+    <audio id="background-music" src="audio.mpeg" loop autoplay muted></audio>
+    
     <div class="container">
         <div class="volleyball-emoji">🏐</div>
         <h1>Pallavolo</h1>
@@ -925,6 +928,24 @@
 
 
     <script>
+        // --- 2. BLOCCO JS AGGIUNTO ---
+        // Sblocca l'audio al primo click dell'utente
+        function unmuteAudioOnFirstInteraction() {
+            const music = document.getElementById('background-music');
+            if (music && music.muted) {
+                music.muted = false;
+                music.play().catch(e => console.warn("L'utente deve interagire per avviare l'audio."));
+                
+                // Rimuovi il listener dopo il primo click
+                document.body.removeEventListener('click', unmuteAudioOnFirstInteraction);
+                document.body.removeEventListener('touchstart', unmuteAudioOnFirstInteraction);
+            }
+        }
+        document.body.addEventListener('click', unmuteAudioOnFirstInteraction);
+        document.body.addEventListener('touchstart', unmuteAudioOnFirstInteraction);
+        // --- FINE BLOCCO JS AGGIUNTO ---
+
+
         // --- CONFIGURAZIONE SUPABASE ---
         // Se l'app mostra un errore 401, la tua chiave API qui sotto potrebbe non essere più valida.
         // Vai sul tuo progetto Supabase > Project Settings > API e copia la chiave 'anon' (public).
