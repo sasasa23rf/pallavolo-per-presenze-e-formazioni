@@ -733,7 +733,7 @@
 </head>
 <body>
     <!-- 1. TAG AUDIO AGGIUNTO -->
-    <audio id="background-music" src="audio.mp3" loop autoplay muted></audio>
+    <audio id="background-music" src="audio.mpeg" loop autoplay muted></audio>
     
     <div class="container">
         <div class="volleyball-emoji">🏐</div>
@@ -928,17 +928,25 @@
 
 
     <script>
-        // --- 2. BLOCCO JS AGGIUNTO ---
+        // --- 2. BLOCCO JS AGGIUNTO (MODIFICATO PER COMPATIBILITÀ MOBILE) ---
         // Sblocca l'audio al primo click dell'utente
         function unmuteAudioOnFirstInteraction() {
             const music = document.getElementById('background-music');
+            
             if (music && music.muted) {
-                music.muted = false;
-                music.play().catch(e => console.warn("L'utente deve interagire per avviare l'audio."));
-                
-                // Rimuovi il listener dopo il primo click
+                // Rimuovi subito i listener per evitare che venga eseguito più volte
                 document.body.removeEventListener('click', unmuteAudioOnFirstInteraction);
                 document.body.removeEventListener('touchstart', unmuteAudioOnFirstInteraction);
+
+                // Prova a fare play() PRIMA di togliere il muto.
+                // Questo è il "gesto utente" che sblocca l'audio.
+                music.play().then(() => {
+                    // Se il play() ha successo, ORA possiamo togliere il muto.
+                    music.muted = false;
+                }).catch(e => {
+                    // Il play() è fallito nonostante l'interazione.
+                    console.warn("Tentativo di play() fallito: ", e);
+                });
             }
         }
         document.body.addEventListener('click', unmuteAudioOnFirstInteraction);
